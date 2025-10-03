@@ -1,0 +1,4 @@
+{
+    "teacher1": "$argon2id$v=19$m=65536,t=3,p=4$UMqZkzLGuNeaM+ZcK8XYew$u1B5kUwbaYRVkpPjg80mTtQsZxTjDgXmNf3TNn+iBpE",
+    "teacher2": "$argon2id$v=19$m=65536,t=3,p=4$b40RYqx1TkkJgTBGqPUe4w$U2q0htUPgayEmLQJy7YbhwGeY3CRiI5X30DHtVhHcjg"
+}

@@ -4,15 +4,33 @@ High School Management System API
 A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 import os
+import json
 from pathlib import Path
 
 app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
+
+# Security
+SECRET_KEY = "a_secret_key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# Password hashing
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+# User model
+class User(BaseModel):
+    username: str
 
 # Mount the static files directory
 current_dir = Path(__file__).parent
@@ -83,6 +101,29 @@ activities = {
     }
 }
 
+# Load teachers from a JSON file
+with open(os.path.join(current_dir, "teachers.json")) as f:
+    teachers = json.load(f)
+
+
+@app.post("/token")
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Authenticate a teacher and return an access token"""
+    username = form_data.username
+    password = form_data.password
+    if not username in teachers or not pwd_context.verify(password, teachers[username]):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = jwt.encode(
+        {"sub": username},
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/")
 def root():
@@ -95,8 +136,16 @@ def get_activities():
 
 
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+def signup_for_activity(activity_name: str, email: str, token: str = Depends(oauth2_scheme)):
     """Sign up a student for an activity"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")
@@ -117,8 +166,16 @@ def signup_for_activity(activity_name: str, email: str):
 
 
 @app.delete("/activities/{activity_name}/unregister")
-def unregister_from_activity(activity_name: str, email: str):
+def unregister_from_activity(activity_name: str, email: str, token: str = Depends(oauth2_scheme)):
     """Unregister a student from an activity"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+
     # Validate activity exists
     if activity_name not in activities:
         raise HTTPException(status_code=404, detail="Activity not found")

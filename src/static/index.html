@@ -11,7 +11,28 @@
       <h1>Mergington High School</h1>
       <p>Home of the Mighty Mergansers</p>
       <h2>Extracurricular Activities</h2>
+      <div id="login-container">
+        <button id="login-button">Login</button>
+      </div>
     </header>
+
+    <div id="login-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h3>Teacher Login</h3>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" required />
+          </div>
+          <button type="submit">Login</button>
+        </form>
+      </div>
+    </div>
 
     <main>
       <section id="activities-container">
@@ -25,22 +46,7 @@
         </div>
       </section>
 
-      <section id="signup-container">
-        <h3>Sign Up for an Activity</h3>
-        <form id="signup-form">
-          <div class="form-group">
-            <label for="email">Student Email:</label>
-            <input type="email" id="email" required placeholder="your-email@mergington.edu" />
-          </div>
-          <div class="form-group">
-            <label for="activity">Select Activity:</label>
-            <select id="activity" required>
-              <option value="">-- Select an activity --</option>
-              <!-- Activity options will be loaded here -->
-            </select>
-          </div>
-          <button type="submit">Sign Up</button>
-        </form>
+      <section id="message-container">
         <div id="message" class="hidden"></div>
       </section>
     </main>
